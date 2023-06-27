@@ -1,0 +1,98 @@
+import java.util.HashMap;
+
+class Key {
+    String stock;
+    int dayOfYear;
+
+    public Key(String stock, int dayOfYear) {
+        this.stock = stock;
+        this.dayOfYear = dayOfYear;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = stock != null ? stock.hashCode() : 0;
+        result = 31 * result + dayOfYear;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Key other = (Key) obj;
+        if (dayOfYear != other.dayOfYear) return false;
+        return stock != null ? stock.equals(other.stock) : other.stock == null;
+    }
+}
+
+class HashTable {
+    private HashMap<Key, Double> table;
+    private int capacity;
+    private int size;
+    private double loadFactor;
+
+    public HashTable(int initialCapacity, double loadFactor) {
+        this.table = new HashMap<>(initialCapacity);
+        this.capacity = initialCapacity;
+        this.size = 0;
+        this.loadFactor = loadFactor;
+    }
+
+    public void put(Key key, double value) {
+        table.put(key, value);
+        size++;
+        if ((double) size / capacity > loadFactor) {
+            resizeTable();
+        }
+    }
+
+    public double get(Key key) {
+        if (table.containsKey(key)) {
+            return table.get(key);
+        } else {
+            throw new IllegalArgumentException("Key not found: " + key.stock + ", " + key.dayOfYear);
+        }
+    }
+
+    public boolean containsKey(Key key) {
+        return table.containsKey(key);
+    }
+
+    public double remove(Key key) {
+        if (table.containsKey(key)) {
+            double value = table.get(key);
+            table.remove(key);
+            size--;
+            return value;
+        } else {
+            throw new IllegalArgumentException("Key not found: " + key.stock + ", " + key.dayOfYear);
+        }
+    }
+
+    public int size() {
+        return size;
+    }
+
+    private void resizeTable() {
+        int newCapacity = capacity * 2;
+        HashMap<Key, Double> newTable = new HashMap<>(newCapacity);
+        for (Key key : table.keySet()) {
+            newTable.put(key, table.get(key));
+        }
+        this.table = newTable;
+        this.capacity = newCapacity;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        HashTable ht = new HashTable(16, 0.75);
+        ht.put(new Key("APPL", 223), 180.0);
+        ht.put(new Key("META", 300), 160.34);
+
+        double metaPrice = ht.get(new Key("META", 300));
+        System.out.println(metaPrice); // Виведе: 160.34
+    }
+}
+//У модифікованій реалізації додано поля capacity (поточна ємність таблиці) і loadFactor (відсоток заповненості, при якому відбувається збільшення таблиці). При додаванні нових елементів у таблицю, перевіряється, чи не перевищує відсоток заповненості заданий loadFactor. Якщо відсоток заповненості перевищує loadFactor, таблиця збільшується вдвічі за допомогою методу resizeTable().
