@@ -1,0 +1,99 @@
+import java.io.*;
+import java.util.HashMap;
+
+class User {
+    String name;
+    String email;
+    byte age;
+
+    public User(String name, String email, byte age) {
+        this.name = name;
+        this.email = email;
+        this.age = age;
+    }
+
+    // Getter methods for name, email, and age
+}
+
+class HashTable {
+    private HashMap<String, Long> indexTable;
+    private RandomAccessFile file;
+
+    public HashTable(String filePath) throws IOException {
+        this.indexTable = new HashMap<>();
+        this.file = new RandomAccessFile(filePath, "rw");
+    }
+
+    public void addUser(User user) throws IOException {
+        // Calculate the hash index based on the email
+        int hashIndex = Math.abs(user.email.hashCode() % 100);
+
+        // Get the file position to write the user data
+        long filePosition = file.length();
+
+        // Write the user data to the file
+        file.writeUTF(user.name);
+        file.writeUTF(user.email);
+        file.writeByte(user.age);
+
+        // Update the index table with the file position
+        indexTable.put(user.email, filePosition);
+    }
+
+    public User getUserByEmail(String email) throws IOException {
+        // Check if the email exists in the index table
+        if (indexTable.containsKey(email)) {
+            // Get the file position of the user data
+            long filePosition = indexTable.get(email);
+
+            // Move the file pointer to the user data position
+            file.seek(filePosition);
+
+            // Read and return the user data
+            String name = file.readUTF();
+            String userEmail = file.readUTF();
+            byte age = file.readByte();
+
+            return new User(name, userEmail, age);
+        } else {
+            return null; // User not found
+        }
+    }
+
+    public void close() throws IOException {
+        file.close();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            HashTable ht = new HashTable("users.dat");
+
+            User user1 = new User("John Doe", "john@example.com", (byte) 25);
+            User user2 = new User("Jane Smith", "jane@example.com", (byte) 30);
+
+            ht.addUser(user1);
+            ht.addUser(user2);
+
+            User foundUser = ht.getUserByEmail("jane@example.com");
+            if (foundUser != null) {
+                System.out.println("Name: " + foundUser.name);
+                System.out.println("Email: " + foundUser.email);
+                System.out.println("Age: " + foundUser.age);
+            } else {
+                System.out.println("User not found.");
+            }
+
+            ht.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+//У цьому прикладі використовується хеш-таблиця (HashTable), яка зберігає індекси файлу для кожного електронного листа. Коли додається новий користувач (addUser), ми обчислюємо хеш-індекс для електронної адреси, записуємо дані користувача в файл (RandomAccessFile) та оновлюємо хеш-таблицю з відповідними позиціями файлу.
+
+Пошук користувача за електронною адресою (getUserByEmail) відбувається шляхом перевірки наявності електронної адреси в хеш-таблиці. Якщо адреса знайдена, ми отримуємо позицію файлу для цієї адреси, переходимо до цієї позиції в файлі, читаємо дані користувача та повертаємо їх.
+
+Треба закрити файл після використання (close) для правильного звільнення ресурсів.
