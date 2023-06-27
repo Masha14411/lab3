@@ -1,0 +1,76 @@
+import java.util.HashMap;
+
+class Key {
+    String stock;
+    int dayOfYear;
+
+    public Key(String stock, int dayOfYear) {
+        this.stock = stock;
+        this.dayOfYear = dayOfYear;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = stock != null ? stock.hashCode() : 0;
+        result = 31 * result + dayOfYear;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Key other = (Key) obj;
+        if (dayOfYear != other.dayOfYear) return false;
+        return stock != null ? stock.equals(other.stock) : other.stock == null;
+    }
+}
+
+class HashTable {
+    private HashMap<Key, Double> table;
+
+    public HashTable() {
+        table = new HashMap<>();
+    }
+
+    public void put(Key key, double value) {
+        table.put(key, value);
+    }
+
+    public double get(Key key) {
+        if (table.containsKey(key)) {
+            return table.get(key);
+        } else {
+            throw new IllegalArgumentException("Key not found: " + key.stock + ", " + key.dayOfYear);
+        }
+    }
+
+    public boolean containsKey(Key key) {
+        return table.containsKey(key);
+    }
+
+    public double remove(Key key) {
+        if (table.containsKey(key)) {
+            double value = table.get(key);
+            table.remove(key);
+            return value;
+        } else {
+            throw new IllegalArgumentException("Key not found: " + key.stock + ", " + key.dayOfYear);
+        }
+    }
+
+    public int size() {
+        return table.size();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        HashTable ht = new HashTable();
+        ht.put(new Key("APPL", 223), 180.0);
+        ht.put(new Key("META", 300), 160.34);
+
+        double metaPrice = ht.get(new Key("META", 300));
+        System.out.println(metaPrice); 
+    }
+}
